@@ -44,7 +44,10 @@ async def AutismCheck(image: Union[UploadFile, None] = None,user: data_type.User
        img_path = Path(UPLOAD_DIRECTORY) / image.filename
        with img_path.open("wb") as buffer:
                 shutil.copyfileobj(image.file, buffer)
-       model = load_model('mobile_net.keras')
+       if not test.detect_human_dnn(img_path):
+            return {"message": "Not a human image"}
+       
+       model = load_model('Facialmobile_net.keras')
        img_array = load_and_preprocess_image(img_path)
        predictions = model.predict(img_array)
        predicted_class = np.argmax(predictions, axis=-1)
@@ -62,14 +65,13 @@ async def AutismCheck(image: Union[UploadFile, None] = None,user: data_type.User
 @app.post("/autism/facial")
 async def AutismCheck(image: Union[UploadFile, None] = None, user: data_type.User = Depends(helping.get_current_user)):
     try:
+       print("FDF")
        if image is None:
             return {"message": "No image provided"}
        img_path = Path(UPLOAD_DIRECTORY) / image.filename
        with img_path.open("wb") as buffer:
                 shutil.copyfileobj(image.file, buffer)
-       if not test.detect_human_dnn(img_path):
-            return {"message": "Not a human image"}
-       model = load_model('Facialmobile_net.keras')
+       model = load_model('mobile_net.keras')
        img_array = load_and_preprocess_image(img_path)
        predictions = model.predict(img_array)
        predicted_class = np.argmax(predictions, axis=-1)
@@ -125,6 +127,7 @@ async def registration(user: data_type.RegistrationRequest):
             return {"message":"Successfully Registered"}
     except Exception as e:
         return e
+
 
 @app.get("/refresh-token")
 async def getToken():
